@@ -1,3 +1,5 @@
 require_relative '../config/environment'
 
-DB[:conn] = SQLite3::Database.new ":memory:"
+PG.connect.exec("DROP DATABASE IF EXISTS school_domain_querying_test")
+PG.connect.exec("CREATE DATABASE school_domain_querying_test")
+DB[:conn] = PG.connect(dbname: 'school_domain_querying_test')

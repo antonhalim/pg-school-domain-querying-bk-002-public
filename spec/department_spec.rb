@@ -11,7 +11,7 @@ describe Department do
   end
 
 
-  describe 'attributes' do 
+  describe 'attributes' do
     it 'has an id, name' do
       attributes = {
         :id => 1,
@@ -32,8 +32,8 @@ describe Department do
       Department.drop_table
       Department.create_table
 
-      table_check_sql = "SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name='departments';"
-      expect(DB[:conn].execute(table_check_sql)[0]).to eq(['departments'])
+      table_check_sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'departments';"
+      expect(DB[:conn].exec(table_check_sql).first["table_name"]).to eq('departments')
     end
   end
 
@@ -42,8 +42,8 @@ describe Department do
       Department.create_table
       Department.drop_table
 
-      table_check_sql = "SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name='departments';"
-      expect(DB[:conn].execute(table_check_sql)[0]).to be_nil
+      table_check_sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'departments';"
+      expect(DB[:conn].exec(table_check_sql).first).to be_nil
     end
   end
 
@@ -55,7 +55,7 @@ describe Department do
       comp_sci.insert
 
       select_sql = "SELECT name FROM Departments WHERE name = 'Computer Science'"
-      result = DB[:conn].execute(select_sql)[0]
+      result = DB[:conn].exec(select_sql)[0]
 
       expect(result[0]).to eq("Computer Science")
     end
@@ -84,7 +84,7 @@ describe Department do
     it 'returns an instance of department that matches the name from the DB' do
       comp_sci = Department.new
       comp_sci.name = "Computer Science"
-      
+
       comp_sci.insert
 
       comp_sci_from_db = Department.find_by_name("Computer Science")
@@ -141,7 +141,7 @@ describe Department do
 
       comp_sci.name = "Communications"
       expect(comp_sci).to receive(:update)
-      comp_sci.save      
+      comp_sci.save
     end
   end
 end

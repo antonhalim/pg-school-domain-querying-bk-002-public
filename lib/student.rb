@@ -1,98 +1,75 @@
 class Student
-  ATTRIBUTES = {
-    :id => "INTEGER PRIMARY KEY",
-    :name => "TEXT",
-    :tagline => "TEXT",
-    :github =>  "TEXT",
-    :twitter =>  "TEXT",
-    :blog_url =>  "TEXT",
-    :image_url  => "TEXT",
-    :biography =>  "TEXT"
-  }
-  # ATTRIBUTES.keys.each do |attribute|
-  #   attr_accessor attribute
-  # end
-  attr_accessor *ATTRIBUTES.keys
+  attr_accessor :id, :name, :tagline, :github, :twitter, :blog_url, :image_url, :biography
 
   def self.create_table
     sql = <<-SQL
-    CREATE TABLE IF NOT EXISTS students (
-        #{schema_definition}
-        )
-SQL
-DB[:conn].execute(sql)
-end
-
-def self.schema_definition
-  ATTRIBUTES.collect{|k,v| "#{k} #{v}"}.join(",")
-end
-
-def sql_for_update
-  ATTRIBUTES.keys[1..-1].collect{|k| "#{k} = ?"}.join(",")
-end
-
-def self.drop_table
-  sql = "DROP TABLE IF EXISTS students"
-  DB[:conn].execute(sql)
-end    
-
-def self.new_from_db(row)
-  self.new.tap do |s|
-    row.each_with_index do |value, index|
-      s.send("#{ATTRIBUTES.keys[index]}=", value)
-    end
-  end
-end
-
-def self.find_by_name(name)
-  sql = "SELECT * FROM students WHERE name = ?"
-    result = DB[:conn].execute(sql,name)[0] #[]    
-    self.new_from_db(result) if result
+      CREATE TABLE IF NOT EXISTS students(
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        tagline TEXT,
+        github TEXT,
+        twitter TEXT,
+        blog_url TEXT,
+        image_url TEXT,
+        biography TEXT
+      );
+    SQL
+    DB[:conn].exec(sql)
   end
 
-  def attribute_values
-    ATTRIBUTES.keys[1..-1].collect{|key| self.send(key)}
+  def self.drop_table
+    DB[:conn].exec('DROP TABLE IF EXISTS students;')
   end
 
   def insert
-    sql = "INSERT INTO students (#{ATTRIBUTES.keys[1..-1].join(",")}) VALUES (?,?,?,?,?,?,?)"
-    DB[:conn].execute(sql, *attribute_values)
+    sql = <<-SQL
+      INSERT INTO students
+      (name, tagline, github, twitter, blog_url, image_url, biography)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id
+    SQL
 
-    @id = DB[:conn].execute("SELECT last_insert_rowid() FROM students")[0][0]
+    result = DB[:conn].exec_params(sql, [name, tagline, github, twitter, blog_url, image_url, biography]).first
+    @id = result["id"].to_i
   end
 
-
   def update
-    sql = "UPDATE students SET #{sql_for_update} WHERE id = ?"
-    DB[:conn].execute(sql, *attribute_values, id)
-  end    
+    sql = <<-SQL
+      UPDATE students
+      SET name=$1, tagline=$2, github=$3, twitter=$4, blog_url=$5, image_url=$6, biography=$7
+      WHERE id=$8
+    SQL
 
-  def persisted?
-    !!self.id
+    DB[:conn].exec_params(sql, [name, tagline, github, twitter, blog_url, image_url, biography, id])
   end
 
   def save
-    persisted? ? update : insert
-  end
-
-  def courses
-    sql = <<-SQL
-    SELECT courses.* 
-    FROM students 
-    JOIN registrations 
-    ON students.id = registrations.student_id 
-    JOIN courses 
-    ON courses.id = registrations.course_id 
-    WHERE students.id = ?
-    SQL
-    result = DB[:conn].execute(sql, self.id) 
-    result.map do |row|
-      Course.new_from_db(row)
+    if id
+      update
+    else
+      insert
     end
   end
 
-  def add_course(course)
-    sql = "INSERT INTO registrations (course_id, student_id) VALUES (?,?);"
-    DB[:conn].execute(sql, course.id, self.id)
+  def self.new_from_db(row)
+    new.tap do |student|
+      student.id = row["id"].to_i
+      student.name = row["name"]
+      student.tagline = row["tagline"]
+      student.github = row["github"]
+      student.twitter = row["twitter"]
+      student.blog_url = row["blog_url"]
+      student.image_url = row["image_url"]
+      student.biography = row["biography"]
+    end
+  end
+
+  def self.find_by_name(name)
+    sql = <<-SQL
+      SELECT * FROM students WHERE name=$1
+    SQL
+    result = DB[:conn].exec_params(sql, [name])
+
+    return nil if result.count.zero?
+    new_from_db(result.first)
   end
 end

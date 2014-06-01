@@ -11,7 +11,7 @@ describe Registration do
   end
 
 
-  describe 'attributes' do 
+  describe 'attributes' do
     it 'has an id, course_id, student_id' do
       attributes = {
         :id => 1,
@@ -35,8 +35,8 @@ describe Registration do
       Registration.drop_table
       Registration.create_table
 
-      table_check_sql = "SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name='registrations';"
-      expect(DB[:conn].execute(table_check_sql)[0]).to eq(['registrations'])
+      table_check_sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'registrations';"
+      expect(DB[:conn].exec(table_check_sql).first["table_name"]).to eq('registrations')
     end
   end
 
@@ -45,8 +45,8 @@ describe Registration do
       Registration.create_table
       Registration.drop_table
 
-      table_check_sql = "SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name='registrations';"
-      expect(DB[:conn].execute(table_check_sql)[0]).to be_nil
+      table_check_sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'registrations';"
+      expect(DB[:conn].exec(table_check_sql).first).to be_nil
     end
   end
 end

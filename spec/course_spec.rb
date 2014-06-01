@@ -11,7 +11,7 @@ describe Course do
   end
 
 
-  describe 'attributes' do 
+  describe 'attributes' do
     it 'has an id, name' do
       attributes = {
         :id => 1,
@@ -35,8 +35,8 @@ describe Course do
       Course.drop_table
       Course.create_table
 
-      table_check_sql = "SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name='courses';"
-      expect(DB[:conn].execute(table_check_sql)[0]).to eq(['courses'])
+      table_check_sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'courses';"
+      expect(DB[:conn].exec(table_check_sql).first["table_name"]).to eq('courses')
     end
   end
 
@@ -45,8 +45,8 @@ describe Course do
       Course.create_table
       Course.drop_table
 
-      table_check_sql = "SELECT tbl_name FROM sqlite_master WHERE type='table' AND tbl_name='courses';"
-      expect(DB[:conn].execute(table_check_sql)[0]).to be_nil
+      table_check_sql = "SELECT table_name FROM information_schema.tables WHERE table_name = 'courses';"
+      expect(DB[:conn].exec(table_check_sql).first).to be_nil
     end
   end
 
@@ -58,7 +58,7 @@ describe Course do
       dot_net.insert
 
       select_sql = "SELECT name FROM Courses WHERE name = 'Advanced .NET Programming'"
-      result = DB[:conn].execute(select_sql)[0]
+      result = DB[:conn].exec(select_sql)[0]
 
       expect(result[0]).to eq("Advanced .NET Programming")
     end
@@ -87,7 +87,7 @@ describe Course do
     it 'returns an instance of Course that matches the name from the DB' do
       dot_net = Course.new
       dot_net.name = "Advanced .NET Programming"
-      
+
       dot_net.insert
 
       dot_net_from_db = Course.find_by_name("Advanced .NET Programming")
@@ -101,7 +101,7 @@ describe Course do
       dot_net = Course.new
       dot_net.name = "Advanced .NET Programming"
       dot_net.department_id = 9999
-      
+
       dot_net.save
 
       dot_net_from_db = Course.find_all_by_department_id(9999)[0]
@@ -149,7 +149,7 @@ describe Course do
 
       dot_net.name = "Underwater Basket Weaving"
       expect(dot_net).to receive(:update)
-      dot_net.save      
+      dot_net.save
     end
   end
 end
