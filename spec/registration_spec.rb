@@ -14,13 +14,11 @@ describe Registration do
   describe 'attributes' do
     it 'has an id, course_id, student_id' do
       attributes = {
-        :id => 1,
         :course_id => 35,
         :student_id => 84
       }
 
       registration = Registration.new
-      registration.id = attributes[:id]
       registration.course_id = attributes[:course_id]
       registration.student_id = attributes[:student_id]
 

@@ -57,7 +57,7 @@ describe Department do
       select_sql = "SELECT name FROM Departments WHERE name = 'Computer Science'"
       result = DB[:conn].exec(select_sql)[0]
 
-      expect(result[0]).to eq("Computer Science")
+      expect(result["name"]).to eq("Computer Science")
     end
 
     it 'updates the current instance with the ID of the Department from the database' do
@@ -72,11 +72,11 @@ describe Department do
 
   describe '.new_from_db' do
     it 'creates an instance with corresponding attribute values' do
-      row = [1, "Computer Science"]
+      row = {"id" => 1, "name" => "Computer Science"}
       comp_sci = Department.new_from_db(row)
 
-      expect(comp_sci.id).to eq(row[0])
-      expect(comp_sci.name).to eq(row[1])
+      expect(comp_sci.id).to eq(row["id"])
+      expect(comp_sci.name).to eq(row["name"])
     end
   end
 

@@ -3,6 +3,7 @@ require_relative 'spec_helper'
 describe Course do
 
   before do
+    Course.drop_table
     Course.create_table
   end
 
@@ -60,7 +61,7 @@ describe Course do
       select_sql = "SELECT name FROM Courses WHERE name = 'Advanced .NET Programming'"
       result = DB[:conn].exec(select_sql)[0]
 
-      expect(result[0]).to eq("Advanced .NET Programming")
+      expect(result["name"]).to eq("Advanced .NET Programming")
     end
 
     it 'updates the current instance with the ID of the Course from the database' do
@@ -75,11 +76,14 @@ describe Course do
 
   describe '.new_from_db' do
     it 'creates an instance with corresponding attribute values' do
-      row = [1, "Advanced .NET Programming"]
+      row = {
+        "id" => 1,
+        "name" => "Advanced .NET Programming"
+      }
       dot_net = Course.new_from_db(row)
 
-      expect(dot_net.id).to eq(row[0])
-      expect(dot_net.name).to eq(row[1])
+      expect(dot_net.id).to eq(row["id"])
+      expect(dot_net.name).to eq(row["name"])
     end
   end
 
