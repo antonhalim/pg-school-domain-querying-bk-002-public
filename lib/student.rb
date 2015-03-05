@@ -74,10 +74,22 @@ class Student
   end
 
   def add_course(course)
-    self.courses << course
+    sql = <<-SQL
+    INSERT INTO registrations (student_id, course_id)
+    VALUES
+    ($1, $2)
+    SQL
+    parameter = id, course.id
+    DB[:conn].exec_params(sql, parameter)
   end
 
   def courses
-    @courses ||= []
+    sql = <<-SQL
+      SELECT * FROM courses JOIN registrations
+      ON registrations.course_id = courses.id
+      WHERE student_id = $1
+    SQL
+    result =  DB[:conn].exec_params(sql, [id])
+    result.map{|course| Course.new_from_db(course)}
   end
 end
