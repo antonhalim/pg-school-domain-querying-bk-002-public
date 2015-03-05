@@ -1,5 +1,5 @@
 class Student
-  attr_accessor :id, :name, :tagline, :github, :twitter, :blog_url, :image_url, :biography
+  attr_accessor :id, :name, :tagline, :github, :twitter, :blog_url, :image_url, :biography, :courses
 
   def self.create_table
     sql = <<-SQL
@@ -71,5 +71,13 @@ class Student
 
     return nil if result.count.zero?
     new_from_db(result.first)
+  end
+
+  def add_course(course)
+    self.courses << course
+  end
+
+  def courses
+    @courses ||= []
   end
 end
