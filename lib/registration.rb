@@ -33,4 +33,28 @@ class Registration
     DB[:conn].exec('DROP TABLE IF EXISTS registrations;')
   end
 
+  def insert
+    sql = <<-SQL
+    INSERT INTO registrations(course_id, student_id) VALUES($1, $2) RETURNING id
+    SQL
+    result = execute(sql, [course_id, student_id]).first
+    @id = result["id"].to_i
+  end
+
+  def update
+    sql = <<-SQL
+      UPDATE registration SET student_id = $1, course_id = $2 WHERE id = $3
+    SQL
+    parameter = [student_id, course_id, id]
+    result = execute(sql, parameter)
+  end
+
+  def save
+    if id
+      update
+    else
+      insert
+    end
+  end
+
 end

@@ -63,6 +63,16 @@ class Student
     end
   end
 
+  def self.find_by_id(id)
+    sql = <<-SQL
+    SELECT * FROM students WHERE id=$1
+    SQL
+    result = DB[:conn].exec_params(sql, [id])
+
+    return nil if result.count.zero?
+    new_from_db(result.first)
+  end
+
   def self.find_by_name(name)
     sql = <<-SQL
       SELECT * FROM students WHERE name=$1
@@ -92,4 +102,5 @@ class Student
     result =  DB[:conn].exec_params(sql, [id])
     result.map{|course| Course.new_from_db(course)}
   end
+
 end

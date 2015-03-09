@@ -87,7 +87,7 @@ class Course
     end
   end
 
-  def department=department
+  def department= department
     self.department_id = department.id
   end
 
@@ -96,11 +96,19 @@ class Course
   end
 
   def add_student(student)
-    students << student
+    sql = <<-SQL
+    INSERT INTO registrations(student_id, course_id)
+    VALUES ($1, $2)
+    SQL
+    execute(sql, [student.id, self.id])
   end
 
   def students
-    @students ||=[]
+    sql = <<-SQL
+    SELECT * FROM registrations WHERE course_id = $1
+    SQL
+    result = execute(sql, [self.id])
+    result.map{|x| Student.find_by_id(x["student_id"].to_i)}
   end
 
 end
